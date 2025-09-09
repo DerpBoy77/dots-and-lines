@@ -1,0 +1,167 @@
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* Fixed: was 100vw, should be 100vh */
+  flex-direction: column;
+  font-family: "Arial", sans-serif;
+  background: linear-gradient(135deg, #f5f5dc, #e6d7b8);
+  padding: 20px;
+}
+
+/* Game board container */
+.game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  border: 3px solid #8b4513;
+  border-radius: 8px;
+  background-color: #faf8f3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+}
+
+/* Main game grid */
+.game-grid {
+  position: relative;
+}
+
+/* Dot styles */
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  position: absolute;
+  background-color: #dc2626;
+  border: 2px solid #7f1d1d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2; /* Ensure dots appear above lines */
+}
+
+/* Line styles */
+.line {
+  position: absolute;
+  transition: all 0.2s ease;
+  z-index: 1; /* Lines appear below dots */
+}
+
+.valid {
+  background-color: #e5e7eb; /* Light gray background to show it's selectable */
+  border: 2px dashed #6b7280; /* Dashed border for better visibility */
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+  border-radius: 4px;
+  animation: pulse-valid 2s infinite; /* Subtle pulsing animation */
+  cursor: pointer;
+}
+
+@keyframes pulse-valid {
+  0% {
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 3px 12px rgba(107, 114, 128, 0.4);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+    transform: scale(1);
+  }
+}
+
+.valid:hover {
+  background-color: #9ca3af; /* Darker gray on hover */
+  border-color: #4b5563;
+  transform: scaleY(1.5) scaleX(1.05); /* More pronounced scaling */
+  box-shadow: 0 4px 16px rgba(75, 85, 99, 0.4);
+  transition: all 0.2s ease;
+}
+
+.reset-container {
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  border: 3px solid #8b4513;
+  border-radius: 8px;
+  background-color: #faf8f3;
+}
+
+.reset-button {
+  width: 300px;
+  height: 50px;
+  border-style: solid;
+  border-radius: 3px;
+  border-color: transparent;
+  background-color: #dc2626;
+  color: white;
+  font-size: large;
+  cursor: pointer;
+}
+
+.title {
+  margin-bottom: 100px;
+  color: #dc2626;
+  font-size: xx-large;
+  font-weight: bolder;
+}
+
+.score-container {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 50px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  border: 3px solid #8b4513;
+  border-radius: 8px;
+  background-color: #faf8f3;
+  width: 300px;
+}
+
+.score {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 8px;
+}
+
+.selected-P1 {
+  background-color: #ff4444;
+}
+
+.selected-P2 {
+  background-color: #4444ff;
+}
+
+.square {
+  width: 42px;
+  height: 42px;
+  position: absolute;
+  opacity: 0.9;
+  z-index: 1;
+}
+
+.Current {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-style: solid;
+  border-radius: 3px;
+}
+
+#player1-container{
+  border-color: #ff4444;
+}
+
+#player2-container{
+  border-color: #4444ff;
+}
+
