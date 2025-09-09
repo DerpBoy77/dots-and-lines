@@ -120,7 +120,6 @@ Modify `main.css` to change:
 
 ## 🐛 Known Issues
 
-- Game currently requires manual reset to play again
 - No AI opponent option
 - No undo functionality
 
