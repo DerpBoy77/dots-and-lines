@@ -184,11 +184,11 @@ function resetGame() {
     square.remove();
   });
   gameState.score = [0, 0];
-  updateScore();
   gameState.currentPlayer = 0;
-  updateUI();
   gameState.currentDot = null;
-  getActive();
+  gameState.lines = [];
+
+  initializeGame();
   console.log("Game reset");
 }
 
