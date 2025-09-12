@@ -7,6 +7,55 @@
     <title>Dots and Lines</title>
   </head>
   <body>
+    <div class="winner-overlay hidden" id="winner-overlay">
+      <div class="winner-container">
+        <h2 id="winner-title">Game Over!</h2>
+        <div class="winner-content">
+          <div class="winner-player" id="winner-player">Player 1 Wins!</div>
+          <div class="final-scores" id="final-scores">
+            <div class="score-item">
+              <span class="player-name">Player 1:</span>
+              <span class="player-score" id="final-p1-score">0</span>
+            </div>
+            <div class="score-item">
+              <span class="player-name">Player 2:</span>
+              <span class="player-score" id="final-p2-score">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="winner-buttons">
+          <button class="play-again-btn" onclick="playAgain()">Play Again</button>
+          <button class="new-game-btn" onclick="newGame()">New Game</button>
+        </div>
+      </div>
+    </div>
+    <div class="options-overlay">
+      <div class="options-container">
+        <h2>Options</h2>
+        <div class="gamemode-container">
+          <div>Game Mode:</div>
+          <div class="buttons">
+            <button class="Mode1 active">Vs Player</button>
+            <button class="Mode2" disabled>Vs Bot (WIP)</button>
+          </div>
+        </div>
+        <div class="grid-option-container">
+          <label class="slider-label">Grid Size:10X10</label>
+          <input
+            type="range"
+            class="slider"
+            min="3"
+            max="16"
+            value="10"
+            oninput="sliderInput()"
+          />
+        </div>
+        <button class="start-button" onclick="startGame()">
+          Start Game
+        </button>
+      </div>
+    </div>
+    <button class="option-btn" onclick="showOptionsMenu()">Options</button>
     <div class="title">Dots and Lines</div>
     <div class="score-container">
       <div class="score" id="player1-container">

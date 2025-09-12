@@ -179,8 +179,8 @@ function resetGame() {
     line.classList.remove("selected-P1", "selected-P2", "valid");
   });
   gameState.completedSquares = [];
-  const sqaures = document.querySelectorAll(".square");
-  sqaures.forEach((square) => {
+  const squares = document.querySelectorAll(".square");
+  squares.forEach((square) => {
     square.remove();
   });
   gameState.score = [0, 0];
@@ -193,7 +193,14 @@ function resetGame() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initializeSlider();
   initializeGame();
+  const overlay = document.querySelector(".options-overlay");
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      hideOptionsMenu();
+    }
+  });
 });
 
 function switchPlayer() {
@@ -266,6 +273,8 @@ function getCompletedSquares(lineElement) {
     gameState.score[currentPlayer.index]++;
     updateScore();
   });
+  winCheck();
+
   return completedSquares;
 }
 
@@ -354,4 +363,90 @@ function getConnectedLines(row, col) {
   }
 
   return connectedLines;
+}
+
+function showOptionsMenu() {
+  const overlay = document.querySelector(".options-overlay");
+  overlay.classList.remove("hidden");
+  overlay.classList.add("show");
+}
+
+function hideOptionsMenu() {
+  const overlay = document.querySelector(".options-overlay");
+  overlay.classList.add("hidden");
+  overlay.classList.remove("show");
+}
+
+function initializeSlider() {
+  const slider = document.querySelector(".slider");
+  const sliderLabel = document.querySelector(".slider-label");
+  slider.max = window.innerWidth / 50 > 16 ? 16 : window.innerWidth / 50;
+  slider.value = slider.max < 10 ? slider.max / 2 : 10;
+  CONFIG.gridSize = slider.value;
+  sliderLabel.textContent = `Grid Size:${slider.value}X${slider.value}`;
+}
+
+function sliderInput() {
+  const slider = document.querySelector(".slider");
+  const sliderLabel = document.querySelector(".slider-label");
+  const value = slider.value;
+  sliderLabel.textContent = `Grid Size:${value}X${value}`;
+  CONFIG.gridSize = parseInt(value);
+}
+
+function startGame() {
+  hideOptionsMenu();
+  resetGame();
+}
+
+function winCheck() {
+  if (gameState.completedSquares.length === (CONFIG.gridSize - 1) ** 2) {
+    // Show winner overlay instead of immediately resetting
+    setTimeout(() => {
+      showWinner();
+    }, 500); // Small delay to let players see the final move
+  }
+}
+
+function showWinner() {
+  const overlay = document.getElementById("winner-overlay");
+  const winnerPlayer = document.getElementById("winner-player");
+  const finalP1Score = document.getElementById("final-p1-score");
+  const finalP2Score = document.getElementById("final-p2-score");
+
+  // Update final scores
+  finalP1Score.textContent = gameState.score[0];
+  finalP2Score.textContent = gameState.score[1];
+
+  // Determine winner and update display
+  if (gameState.score[0] > gameState.score[1]) {
+    winnerPlayer.textContent = "Player 1 Wins!";
+    winnerPlayer.className = "winner-player player1";
+  } else if (gameState.score[1] > gameState.score[0]) {
+    winnerPlayer.textContent = "Player 2 Wins!";
+    winnerPlayer.className = "winner-player player2";
+  } else {
+    winnerPlayer.textContent = "It's a Tie!";
+    winnerPlayer.className = "winner-player tie";
+  }
+
+  // Show the overlay
+  overlay.classList.remove("hidden");
+  overlay.classList.add("show");
+}
+
+function hideWinner() {
+  const overlay = document.getElementById("winner-overlay");
+  overlay.classList.add("hidden");
+  overlay.classList.remove("show");
+}
+
+function playAgain() {
+  hideWinner();
+  resetGame();
+}
+
+function newGame() {
+  hideWinner();
+  showOptionsMenu();
 }
