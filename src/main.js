@@ -9,7 +9,7 @@ const CONFIG = {
 
 const gameState = {
   lines: [],
-  completedSquares: [],
+  completedSquares: [new Set(), new Set()],
   selectedLines: new Set(),
   currentPlayer: 0,
   score: [0, 0],
@@ -178,7 +178,7 @@ function resetGame() {
   gameState.lines.forEach((line) => {
     line.classList.remove("selected-P1", "selected-P2", "valid");
   });
-  gameState.completedSquares = [];
+  gameState.completedSquares = [new Set(), new Set()];
   const squares = document.querySelectorAll(".square");
   squares.forEach((square) => {
     square.remove();
@@ -195,10 +195,16 @@ function resetGame() {
 document.addEventListener("DOMContentLoaded", () => {
   initializeSlider();
   initializeGame();
-  const overlay = document.querySelector(".options-overlay");
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
+  const optionsOverlay = document.querySelector(".options-overlay");
+  const winnerOverlay = document.querySelector(".winner-overlay");
+  optionsOverlay.addEventListener("click", (e) => {
+    if (e.target === optionsOverlay) {
       hideOptionsMenu();
+    }
+  });
+  winnerOverlay.addEventListener("click", (e) => {
+    if (e.target === winnerOverlay) {
+      hideWinnerOverlay();
     }
   });
 });
@@ -303,7 +309,7 @@ function markSquare(row, col, player) {
   square.style.left = `${calculatePosition(col) + 12}px`;
   square.style.top = `${calculatePosition(row) + 12}px`;
   grid.appendChild(square);
-  gameState.completedSquares.push({ row: row, col: col, player: player.index });
+  gameState.completedSquares[player.index].add({ row: row, col: col });
 }
 
 function getActive() {
@@ -400,12 +406,20 @@ function startGame() {
 }
 
 function winCheck() {
-  if (gameState.completedSquares.length === (CONFIG.gridSize - 1) ** 2) {
-    // Show winner overlay instead of immediately resetting
+  if (
+    gameState.score[0] > (CONFIG.gridSize - 1) ** 2 / 2 ||
+    gameState.score[1] > (CONFIG.gridSize - 1) ** 2 / 2
+  ) {
     setTimeout(() => {
       showWinner();
-    }, 500); // Small delay to let players see the final move
+    }, 500);
   }
+  // if (gameState.completedSquares.length === (CONFIG.gridSize - 1) ** 2) {
+  //   // Show winner overlay instead of immediately resetting
+  //   setTimeout(() => {
+  //     showWinner();
+  //   }, 500); // Small delay to let players see the final move
+  // }
 }
 
 function showWinner() {
@@ -435,18 +449,18 @@ function showWinner() {
   overlay.classList.add("show");
 }
 
-function hideWinner() {
+function hideWinnerOverlay() {
   const overlay = document.getElementById("winner-overlay");
   overlay.classList.add("hidden");
   overlay.classList.remove("show");
 }
 
 function playAgain() {
-  hideWinner();
+  hideWinnerOverlay();
   resetGame();
 }
 
 function newGame() {
-  hideWinner();
+  hideWinnerOverlay();
   showOptionsMenu();
 }
