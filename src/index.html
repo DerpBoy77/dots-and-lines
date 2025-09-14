@@ -18,13 +18,15 @@
               <span class="player-score" id="final-p1-score">0</span>
             </div>
             <div class="score-item">
-              <span class="player-name">Player 2</span>
+              <span class="player-name p2-win-name">Player 2</span>
               <span class="player-score" id="final-p2-score">0</span>
             </div>
           </div>
         </div>
         <div class="winner-buttons">
-          <button class="play-again-btn" onclick="playAgain()">Play Again</button>
+          <button class="play-again-btn" onclick="playAgain()">
+            Play Again
+          </button>
           <button class="new-game-btn" onclick="newGame()">New Game</button>
         </div>
       </div>
@@ -35,8 +37,10 @@
         <div class="gamemode-container">
           <div>Game Mode:</div>
           <div class="buttons">
-            <button class="Mode1 active">Vs Player</button>
-            <button class="Mode2" disabled>Vs Bot (WIP)</button>
+            <button class="Mode1 active" onclick="vsPlayerMode()">
+              Vs Player
+            </button>
+            <button class="Mode2" onclick="vsBotMode()">Vs Bot</button>
           </div>
         </div>
         <div class="grid-option-container">
@@ -50,20 +54,18 @@
             oninput="sliderInput()"
           />
         </div>
-        <button class="start-button" onclick="startGame()">
-          Start Game
-        </button>
+        <button class="start-button" onclick="startGame()">Start Game</button>
       </div>
     </div>
     <button class="option-btn" onclick="showOptionsMenu()">Options</button>
     <div class="title">Dots and Lines</div>
     <div class="score-container">
       <div class="score" id="player1-container">
-        <div class="playerNumber">Player 1</div>
+        <div class="playerNumber" id="p1">Player 1</div>
         <div class="player1Score" id="P1-score">0</div>
       </div>
       <div class="score" id="player2-container">
-        <div class="playerNumber">Player 2</div>
+        <div class="playerNumber" id="p2">Player 2</div>
         <div class="player1Score" id="P2-score">0</div>
       </div>
     </div>
@@ -74,5 +76,5 @@
       <button onclick="resetGame()" class="reset-button">Restart</button>
     </div>
   </body>
-  <script src="./main.js"></script>
+  <script type="module" src="./main.js"></script>
 </html>

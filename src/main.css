@@ -123,7 +123,8 @@ body {
   border: 3px solid #8b4513;
   border-radius: 8px;
   background-color: #faf8f3;
-  width: 300px;
+  width: fit-content;
+  /* gap: 20px; */
 }
 
 .score {
@@ -131,7 +132,10 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+  text-align: center;
   padding: 8px;
+  width: 40%;
+  min-width: 100px;
 }
 
 .selected-P1 {
@@ -204,7 +208,7 @@ body {
 @media (min-width: 450px) {
   .options-container {
     min-width: 400px;
-    width: auto; 
+    width: auto;
   }
 }
 
@@ -259,8 +263,10 @@ body {
   border-color: #dc2626;
 }
 
-.Mode1.active:hover {
+.Mode1.active:hover,
+.Mode2.active:hover {
   background-color: #dc2626;
+  transform: translateY(0px);
 }
 
 .Mode1:hover,
@@ -535,5 +541,11 @@ body {
   .play-again-btn,
   .new-game-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 200px) {
+  .score-container {
+    flex-direction: column;
   }
 }

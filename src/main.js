@@ -1,3 +1,14 @@
+import { getBotMove } from "./bot.js";
+
+window.playAgain = playAgain;
+window.newGame = newGame;
+window.showOptionsMenu = showOptionsMenu;
+window.vsPlayerMode = vsPlayerMode;
+window.vsBotMode = vsBotMode;
+window.sliderInput = sliderInput;
+window.startGame = startGame;
+window.resetGame = resetGame;
+
 const CONFIG = {
   gridSize: 10,
   dotSize: 16,
@@ -15,6 +26,8 @@ const gameState = {
   score: [0, 0],
   playerLines: [new Set(), new Set()],
   currentDot: null,
+  validLineIDs: new Set(),
+  mode: 0,
 };
 
 function calculatePosition(index) {
@@ -97,10 +110,13 @@ function handleLineClick(lineElement) {
   gameState.playerLines[currentPlayer.index].add(lineId);
   const completedSquares = getCompletedSquares(lineElement);
   if (completedSquares.length === 0) {
-    switchPlayer();
     updateCurrentDot(lineElement);
+    switchPlayer();
   } else if (completedSquares.length > 0) {
     gameState.currentDot = null;
+    if (gameState.mode == 1 && gameState.currentPlayer == 1) {
+      clickBotMove();
+    }
   }
   getActive();
 }
@@ -213,6 +229,9 @@ function switchPlayer() {
   gameState.currentPlayer =
     (gameState.currentPlayer + 1) % CONFIG.players.length;
   updateUI();
+  if (gameState.mode == 1 && gameState.currentPlayer == 1) {
+    clickBotMove();
+  }
 }
 
 function getCurrentPlayer() {
@@ -301,15 +320,15 @@ function isSquareComplete(row, col) {
 function markSquare(row, col, player) {
   const grid = document.getElementById("grid");
   const square = document.createElement("div");
-  square.dataset.row = row;
-  square.dataset.col = col;
-  square.dataset.player = player;
+  square.dataset.row = String(row);
+  square.dataset.col = String(col);
+  square.dataset.player = String(player.index);
   square.classList.add("square");
   square.style.backgroundColor = player.color;
   square.style.left = `${calculatePosition(col) + 12}px`;
   square.style.top = `${calculatePosition(row) + 12}px`;
   grid.appendChild(square);
-  gameState.completedSquares[player.index].add({ row: row, col: col });
+  gameState.completedSquares[player.index].add(`${row},${col}`);
 }
 
 function getActive() {
@@ -332,6 +351,7 @@ function getActive() {
         }
       });
     });
+
     if (validLineIDs.size == 0) {
       gameState.currentDot = null;
       getActive();
@@ -386,18 +406,20 @@ function hideOptionsMenu() {
 function initializeSlider() {
   const slider = document.querySelector(".slider");
   const sliderLabel = document.querySelector(".slider-label");
-  slider.max = window.innerWidth / 50 > 16 ? 16 : window.innerWidth / 50;
-  slider.value = slider.max < 10 ? slider.max / 2 : 10;
-  CONFIG.gridSize = slider.value;
+  slider.max = String(
+    window.innerWidth / 50 > 16 ? 16 : window.innerWidth / 50
+  );
+  slider.value = String(slider.max < 10 ? slider.max / 2 : 10);
+  CONFIG.gridSize = parseInt(slider.value);
   sliderLabel.textContent = `Grid Size:${slider.value}X${slider.value}`;
 }
 
 function sliderInput() {
   const slider = document.querySelector(".slider");
   const sliderLabel = document.querySelector(".slider-label");
-  const value = slider.value;
+  const value = parseInt(slider.value);
   sliderLabel.textContent = `Grid Size:${value}X${value}`;
-  CONFIG.gridSize = parseInt(value);
+  CONFIG.gridSize = value;
 }
 
 function startGame() {
@@ -406,20 +428,17 @@ function startGame() {
 }
 
 function winCheck() {
+  const totalSquares = (CONFIG.gridSize - 1) ** 2;
+  const winningScore = Math.floor(totalSquares / 2) + 1;
+
   if (
-    gameState.score[0] > (CONFIG.gridSize - 1) ** 2 / 2 ||
-    gameState.score[1] > (CONFIG.gridSize - 1) ** 2 / 2
+    gameState.score[0] >= winningScore ||
+    gameState.score[1] >= winningScore
   ) {
     setTimeout(() => {
       showWinner();
     }, 500);
   }
-  // if (gameState.completedSquares.length === (CONFIG.gridSize - 1) ** 2) {
-  //   // Show winner overlay instead of immediately resetting
-  //   setTimeout(() => {
-  //     showWinner();
-  //   }, 500); // Small delay to let players see the final move
-  // }
 }
 
 function showWinner() {
@@ -437,7 +456,11 @@ function showWinner() {
     winnerPlayer.textContent = "Player 1 Wins!";
     winnerPlayer.className = "winner-player player1";
   } else if (gameState.score[1] > gameState.score[0]) {
-    winnerPlayer.textContent = "Player 2 Wins!";
+    if (gameState.mode == 1) {
+      winnerPlayer.textContent = "Bot Wins!";
+    } else {
+      winnerPlayer.textContent = "Player 2 Wins!";
+    }
     winnerPlayer.className = "winner-player player2";
   } else {
     winnerPlayer.textContent = "It's a Tie!";
@@ -463,4 +486,35 @@ function playAgain() {
 function newGame() {
   hideWinnerOverlay();
   showOptionsMenu();
+}
+
+function vsPlayerMode() {
+  const playerButton = document.querySelector(".Mode1");
+  const botButton = document.querySelector(".Mode2");
+  const p2Text = document.getElementById("p2");
+  playerButton.classList.add("active");
+  botButton.classList.remove("active");
+  p2Text.textContent = "Player 2";
+  gameState.mode = 0;
+}
+
+function vsBotMode() {
+  const playerButton = document.querySelector(".Mode1");
+  const p2Name = document.querySelector(".p2-win-name");
+  const botButton = document.querySelector(".Mode2");
+  const p2Text = document.getElementById("p2");
+  playerButton.classList.remove("active");
+  botButton.classList.add("active");
+  p2Text.textContent = "Bot";
+  p2Name.textContent = "Bot";
+  gameState.mode = 1;
+}
+
+function clickBotMove() {
+  getActive();
+  const move = getBotMove();
+  console.log(move);
+  setTimeout(() => {
+    document.querySelector(`[data-id="${move}"]`).click();
+  }, 100);
 }
