@@ -4,16 +4,19 @@
  */
 export function getBotMove() {
   const validLines = document.querySelectorAll(".valid");
-  
+
   // Handle empty case early
   if (validLines.length === 0) {
     console.warn("No valid lines available for bot move");
     return null;
   }
-  
+
   // Use Array.from for better readability and performance
-  const validLineIDs = Array.from(validLines, line => line.dataset?.id).filter(Boolean);
-  
+  const validLineIDs = Array.from(
+    validLines,
+    (line) => line.dataset?.id
+  ).filter(Boolean);
+
   if (validLineIDs.length === 0) {
     console.warn("No valid line IDs found");
     return null;

@@ -14,12 +14,12 @@ const CONSTANTS = {
   DOT_POSITION_OFFSET: 1,
   PLAYERS: {
     HUMAN: 0,
-    BOT: 1
+    BOT: 1,
   },
   STYLES: {
     CONNECTED: 0,
-    FREEFORM: 1
-  }
+    FREEFORM: 1,
+  },
 };
 
 const CONFIG = {
@@ -108,13 +108,13 @@ function handleLineClick(lineElement) {
     console.error("Invalid line element provided to handleLineClick");
     return;
   }
-  
+
   const lineId = lineElement.dataset.id;
   if (!lineId) {
     console.error("Line element missing required data-id attribute");
     return;
   }
-  
+
   const currentPlayer = getCurrentPlayer();
   if (!currentPlayer) {
     console.error("Unable to get current player");
@@ -144,7 +144,10 @@ function handleLineClick(lineElement) {
     gameState.currentDot = null;
     // Player gets another turn for completing squares - no player switch
     // Trigger bot move after a delay to prevent stack overflow
-    if (gameState.mode === CONSTANTS.PLAYERS.BOT && gameState.currentPlayer === CONSTANTS.PLAYERS.BOT) {
+    if (
+      gameState.mode === CONSTANTS.PLAYERS.BOT &&
+      gameState.currentPlayer === CONSTANTS.PLAYERS.BOT
+    ) {
       setTimeout(() => clickBotMove(), CONSTANTS.ANIMATION_DELAY);
     }
   }
@@ -193,7 +196,8 @@ function initializeGame() {
   const grid = DOM.grid;
 
   grid.innerHTML = "";
-  const gridPixelSize = CONSTANTS.GRID_POSITION_MULTIPLIER * (CONFIG.gridSize - 1) + CONFIG.dotSize;
+  const gridPixelSize =
+    CONSTANTS.GRID_POSITION_MULTIPLIER * (CONFIG.gridSize - 1) + CONFIG.dotSize;
   grid.style.width = grid.style.height = `${gridPixelSize}px`;
 
   for (let row = 0; row < CONFIG.gridSize; row++) {
@@ -257,7 +261,7 @@ const DOM = {
   startGameBtn: null,
   optionsBtn: null,
   resetBtn: null,
-  
+
   init() {
     this.grid = document.getElementById("grid");
     this.connectedButton = document.getElementById("connected-btn");
@@ -275,7 +279,7 @@ const DOM = {
     this.startGameBtn = document.getElementById("start-game-btn");
     this.optionsBtn = document.getElementById("options-btn");
     this.resetBtn = document.getElementById("reset-btn");
-  }
+  },
 };
 
 function setupEventListeners() {
@@ -290,22 +294,22 @@ function setupEventListeners() {
       hideWinnerOverlay();
     }
   });
-  
+
   // Game style buttons
   DOM.connectedButton?.addEventListener("click", () => connectedMode());
   DOM.freeformButton?.addEventListener("click", () => freeformMode());
-  
+
   // Game mode buttons
   DOM.vsPlayerBtn?.addEventListener("click", () => vsPlayerMode());
   DOM.vsBotBtn?.addEventListener("click", () => vsBotMode());
-  
+
   // Action buttons
   DOM.playAgainBtn?.addEventListener("click", () => playAgain());
   DOM.newGameBtn?.addEventListener("click", () => newGame());
   DOM.startGameBtn?.addEventListener("click", () => startGame());
   DOM.optionsBtn?.addEventListener("click", () => showOptionsMenu());
   DOM.resetBtn?.addEventListener("click", () => resetGame());
-  
+
   // Slider input
   DOM.slider?.addEventListener("input", () => sliderInput());
 }
@@ -321,7 +325,10 @@ function switchPlayer() {
   gameState.currentPlayer =
     (gameState.currentPlayer + 1) % CONFIG.players.length;
   updateUI();
-  if (gameState.mode === CONSTANTS.PLAYERS.BOT && gameState.currentPlayer === CONSTANTS.PLAYERS.BOT) {
+  if (
+    gameState.mode === CONSTANTS.PLAYERS.BOT &&
+    gameState.currentPlayer === CONSTANTS.PLAYERS.BOT
+  ) {
     clickBotMove();
   }
 }
@@ -411,16 +418,17 @@ function isSquareComplete(row, col) {
 
 function markSquare(row, col, player) {
   const squareKey = `${row},${col}`;
-  
+
   // Check if square is already marked by any player
-  const alreadyMarked = gameState.completedSquares[0].has(squareKey) || 
-                        gameState.completedSquares[1].has(squareKey);
-  
+  const alreadyMarked =
+    gameState.completedSquares[0].has(squareKey) ||
+    gameState.completedSquares[1].has(squareKey);
+
   if (alreadyMarked) {
     console.warn(`Square at ${row},${col} already marked!`);
     return;
   }
-  
+
   const square = document.createElement("div");
   square.dataset.row = String(row);
   square.dataset.col = String(col);
@@ -458,8 +466,9 @@ function getActive() {
       if (validLineIDs.size === 0) {
         gameState.currentDot = null;
         // Check if any unselected lines exist before recursing
-        const hasUnselectedLines = gameState.lines.some(line => 
-          !gameState.selectedLines.has(line.dataset.id));
+        const hasUnselectedLines = gameState.lines.some(
+          (line) => !gameState.selectedLines.has(line.dataset.id)
+        );
         if (hasUnselectedLines) {
           getActive();
           return;
@@ -525,25 +534,32 @@ function initializeSlider() {
     console.error("Slider elements not found!");
     return;
   }
-  
+
   const slider = DOM.slider;
   const sliderLabel = DOM.sliderLabel;
-  
+
   // Calculate max grid size based on screen width, ensure it's an integer
-  const maxGridSize = Math.min(CONSTANTS.GRID_MAX_SIZE, Math.floor(window.innerWidth / CONSTANTS.GRID_POSITION_MULTIPLIER));
+  const maxGridSize = Math.min(
+    CONSTANTS.GRID_MAX_SIZE,
+    Math.floor(window.innerWidth / CONSTANTS.GRID_POSITION_MULTIPLIER)
+  );
   slider.max = String(Math.max(CONSTANTS.GRID_MIN_SIZE, maxGridSize));
-  
+
   // Set default value, ensure it's an integer
   const maxValue = parseInt(slider.max);
-  slider.value = String(maxValue < CONSTANTS.DEFAULT_GRID_SIZE ? Math.max(CONSTANTS.GRID_MIN_SIZE, Math.floor(maxValue / 2)) : CONSTANTS.DEFAULT_GRID_SIZE);
-  
+  slider.value = String(
+    maxValue < CONSTANTS.DEFAULT_GRID_SIZE
+      ? Math.max(CONSTANTS.GRID_MIN_SIZE, Math.floor(maxValue / 2))
+      : CONSTANTS.DEFAULT_GRID_SIZE
+  );
+
   CONFIG.gridSize = parseInt(slider.value);
   sliderLabel.textContent = `Grid Size:${slider.value}X${slider.value}`;
 }
 
 function sliderInput() {
   if (!DOM.slider || !DOM.sliderLabel) return;
-  
+
   const slider = DOM.slider;
   const sliderLabel = DOM.sliderLabel;
   const value = parseInt(slider.value);
@@ -661,7 +677,7 @@ function clickBotMove() {
 
 function connectedMode() {
   if (!DOM.connectedButton || !DOM.freeformButton) return;
-  
+
   const connectedButton = DOM.connectedButton;
   const freeformButton = DOM.freeformButton;
   connectedButton.classList.add("active");
@@ -671,7 +687,7 @@ function connectedMode() {
 
 function freeformMode() {
   if (!DOM.connectedButton || !DOM.freeformButton) return;
-  
+
   const connectedButton = DOM.connectedButton;
   const freeformButton = DOM.freeformButton;
   freeformButton.classList.add("active");

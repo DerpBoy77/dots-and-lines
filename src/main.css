@@ -242,7 +242,7 @@ body {
   width: 100%;
 }
 
-.btn{
+.btn {
   flex: 1;
   padding: 12px 20px;
   border: 2px solid #8b4513;
@@ -257,28 +257,28 @@ body {
   transition: all 0.3s ease;
 }
 
-.btn.active{
+.btn.active {
   background-color: #dc2626;
   color: white;
   border-color: #dc2626;
 }
 
-.btn.active:hover{
+.btn.active:hover {
   background-color: #dc2626;
   transform: translateY(0px);
 }
 
-.btn:hover{
+.btn:hover {
   background-color: #e6d7b8;
   transform: translateY(-2px);
 }
 
-.btn:disabled{
+.btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn:disabled:hover{
+.btn:disabled:hover {
   background-color: #faf8f3;
   transform: none;
 }
@@ -513,7 +513,7 @@ body {
     flex-direction: column;
   }
 
-  #button{
+  #button {
     width: 100%;
   }
 
