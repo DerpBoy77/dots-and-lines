@@ -219,7 +219,8 @@ body {
   font-size: 1.8em;
 }
 
-.gamemode-container {
+.gamemode-container,
+.gamestyle-container {
   display: flex;
   gap: 10px;
   flex-direction: column;
@@ -227,7 +228,8 @@ body {
   width: 100%;
 }
 
-.gamemode-container > div:first-child {
+.gamemode-container > div:first-child,
+.gamestyle-container > div:first-child {
   color: #8b4513;
   font-size: 1.1em;
   margin-bottom: 5px;
@@ -240,8 +242,7 @@ body {
   width: 100%;
 }
 
-.Mode1,
-.Mode2 {
+.btn{
   flex: 1;
   padding: 12px 20px;
   border: 2px solid #8b4513;
@@ -256,33 +257,28 @@ body {
   transition: all 0.3s ease;
 }
 
-.Mode1.active,
-.Mode2.active {
+.btn.active{
   background-color: #dc2626;
   color: white;
   border-color: #dc2626;
 }
 
-.Mode1.active:hover,
-.Mode2.active:hover {
+.btn.active:hover{
   background-color: #dc2626;
   transform: translateY(0px);
 }
 
-.Mode1:hover,
-.Mode2:hover {
+.btn:hover{
   background-color: #e6d7b8;
   transform: translateY(-2px);
 }
 
-.Mode1:disabled,
-.Mode2:disabled {
+.btn:disabled{
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.Mode1:disabled:hover,
-.Mode2:disabled:hover {
+.btn:disabled:hover{
   background-color: #faf8f3;
   transform: none;
 }
@@ -517,8 +513,7 @@ body {
     flex-direction: column;
   }
 
-  .Mode1,
-  .Mode2 {
+  #button{
     width: 100%;
   }
 

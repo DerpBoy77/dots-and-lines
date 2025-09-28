@@ -1,16 +1,29 @@
 import { getBotMove } from "./bot.js";
 
-window.playAgain = playAgain;
-window.newGame = newGame;
-window.showOptionsMenu = showOptionsMenu;
-window.vsPlayerMode = vsPlayerMode;
-window.vsBotMode = vsBotMode;
-window.sliderInput = sliderInput;
-window.startGame = startGame;
-window.resetGame = resetGame;
+// Constants
+const CONSTANTS = {
+  GRID_POSITION_MULTIPLIER: 50,
+  GRID_MIN_SIZE: 3,
+  GRID_MAX_SIZE: 16,
+  DEFAULT_GRID_SIZE: 10,
+  ANIMATION_DELAY: 150,
+  WIN_CHECK_DELAY: 500,
+  BOT_MOVE_DELAY: 100,
+  POSITION_OFFSET: 12,
+  LINE_POSITION_OFFSET: 2,
+  DOT_POSITION_OFFSET: 1,
+  PLAYERS: {
+    HUMAN: 0,
+    BOT: 1
+  },
+  STYLES: {
+    CONNECTED: 0,
+    FREEFORM: 1
+  }
+};
 
 const CONFIG = {
-  gridSize: 10,
+  gridSize: CONSTANTS.DEFAULT_GRID_SIZE,
   dotSize: 16,
   lineWidth: 54,
   lineHeight: 8,
@@ -28,10 +41,11 @@ const gameState = {
   currentDot: null,
   validLineIDs: new Set(),
   mode: 0,
+  style: 0,
 };
 
 function calculatePosition(index) {
-  return index * 50;
+  return index * CONSTANTS.GRID_POSITION_MULTIPLIER;
 }
 
 function createDot(row, col) {
@@ -58,7 +72,7 @@ function createHorizontalLine(row, col) {
   const topPos =
     calculatePosition(row) + (CONFIG.dotSize - CONFIG.lineHeight) / 2;
 
-  line.style.left = `${leftPos + 2}px`;
+  line.style.left = `${leftPos + CONSTANTS.LINE_POSITION_OFFSET}px`;
   line.style.top = `${topPos}px`;
   line.style.width = `${CONFIG.lineWidth}px`;
   line.style.height = `${CONFIG.lineHeight}px`;
@@ -80,7 +94,7 @@ function createVerticalLine(row, col) {
   const topPos = calculatePosition(row) + CONFIG.dotSize / 3;
 
   line.style.left = `${leftPos}px`;
-  line.style.top = `${topPos + 1}px`;
+  line.style.top = `${topPos + CONSTANTS.DOT_POSITION_OFFSET}px`;
   line.style.width = `${CONFIG.lineHeight}px`;
   line.style.height = `${CONFIG.lineWidth}px`;
 
@@ -90,8 +104,22 @@ function createVerticalLine(row, col) {
 }
 
 function handleLineClick(lineElement) {
+  if (!lineElement || !lineElement.dataset) {
+    console.error("Invalid line element provided to handleLineClick");
+    return;
+  }
+  
   const lineId = lineElement.dataset.id;
+  if (!lineId) {
+    console.error("Line element missing required data-id attribute");
+    return;
+  }
+  
   const currentPlayer = getCurrentPlayer();
+  if (!currentPlayer) {
+    console.error("Unable to get current player");
+    return;
+  }
 
   if (gameState.selectedLines.has(lineId)) {
     return;
@@ -101,7 +129,7 @@ function handleLineClick(lineElement) {
   }
 
   gameState.selectedLines.add(lineId);
-  if (currentPlayer.index == 0) {
+  if (currentPlayer.index === CONSTANTS.PLAYERS.HUMAN) {
     lineElement.classList.add("selected-P1");
   } else {
     lineElement.classList.add("selected-P2");
@@ -114,8 +142,10 @@ function handleLineClick(lineElement) {
     switchPlayer();
   } else if (completedSquares.length > 0) {
     gameState.currentDot = null;
-    if (gameState.mode == 1 && gameState.currentPlayer == 1) {
-      clickBotMove();
+    // Player gets another turn for completing squares - no player switch
+    // Trigger bot move after a delay to prevent stack overflow
+    if (gameState.mode === CONSTANTS.PLAYERS.BOT && gameState.currentPlayer === CONSTANTS.PLAYERS.BOT) {
+      setTimeout(() => clickBotMove(), CONSTANTS.ANIMATION_DELAY);
     }
   }
   getActive();
@@ -126,7 +156,7 @@ function updateCurrentDot(lineElement) {
   const row = parseInt(lineElement.dataset.row);
   const col = parseInt(lineElement.dataset.col);
   let endpoints;
-  if (lineType == "horizontal") {
+  if (lineType === "horizontal") {
     endpoints = [
       [row, col],
       [row, col + 1],
@@ -138,7 +168,7 @@ function updateCurrentDot(lineElement) {
     ];
   }
 
-  if (gameState.currentDot == null) {
+  if (gameState.currentDot === null) {
     gameState.currentDot = endpoints;
   } else {
     const newDots = [];
@@ -155,15 +185,16 @@ function updateCurrentDot(lineElement) {
 }
 
 function initializeGame() {
-  const grid = document.getElementById("grid");
-
-  if (!grid) {
+  if (!DOM.grid) {
     console.error("Grid element not found!");
     return;
   }
 
+  const grid = DOM.grid;
+
   grid.innerHTML = "";
-  grid.style.width = grid.style.height = `${50 * (CONFIG.gridSize - 1) + 16}px`;
+  const gridPixelSize = CONSTANTS.GRID_POSITION_MULTIPLIER * (CONFIG.gridSize - 1) + CONFIG.dotSize;
+  grid.style.width = grid.style.height = `${gridPixelSize}px`;
 
   for (let row = 0; row < CONFIG.gridSize; row++) {
     for (let col = 0; col < CONFIG.gridSize; col++) {
@@ -208,28 +239,89 @@ function resetGame() {
   console.log("Game reset");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  initializeSlider();
-  initializeGame();
-  const optionsOverlay = document.querySelector(".options-overlay");
-  const winnerOverlay = document.querySelector(".winner-overlay");
-  optionsOverlay.addEventListener("click", (e) => {
-    if (e.target === optionsOverlay) {
+// DOM element cache
+const DOM = {
+  grid: null,
+  connectedButton: null,
+  freeformButton: null,
+  optionsOverlay: null,
+  winnerOverlay: null,
+  slider: null,
+  sliderLabel: null,
+  player1Score: null,
+  player2Score: null,
+  playAgainBtn: null,
+  newGameBtn: null,
+  vsPlayerBtn: null,
+  vsBotBtn: null,
+  startGameBtn: null,
+  optionsBtn: null,
+  resetBtn: null,
+  
+  init() {
+    this.grid = document.getElementById("grid");
+    this.connectedButton = document.getElementById("connected-btn");
+    this.freeformButton = document.getElementById("freeform-btn");
+    this.optionsOverlay = document.querySelector(".options-overlay");
+    this.winnerOverlay = document.querySelector(".winner-overlay");
+    this.slider = document.getElementById("grid-size-slider");
+    this.sliderLabel = document.querySelector(".slider-label");
+    this.player1Score = document.getElementById("P1-score");
+    this.player2Score = document.getElementById("P2-score");
+    this.playAgainBtn = document.getElementById("play-again-btn");
+    this.newGameBtn = document.getElementById("new-game-btn");
+    this.vsPlayerBtn = document.getElementById("vs-player-btn");
+    this.vsBotBtn = document.getElementById("vs-bot-btn");
+    this.startGameBtn = document.getElementById("start-game-btn");
+    this.optionsBtn = document.getElementById("options-btn");
+    this.resetBtn = document.getElementById("reset-btn");
+  }
+};
+
+function setupEventListeners() {
+  // Overlay click handlers
+  DOM.optionsOverlay?.addEventListener("click", (e) => {
+    if (e.target === DOM.optionsOverlay) {
       hideOptionsMenu();
     }
   });
-  winnerOverlay.addEventListener("click", (e) => {
-    if (e.target === winnerOverlay) {
+  DOM.winnerOverlay?.addEventListener("click", (e) => {
+    if (e.target === DOM.winnerOverlay) {
       hideWinnerOverlay();
     }
   });
+  
+  // Game style buttons
+  DOM.connectedButton?.addEventListener("click", () => connectedMode());
+  DOM.freeformButton?.addEventListener("click", () => freeformMode());
+  
+  // Game mode buttons
+  DOM.vsPlayerBtn?.addEventListener("click", () => vsPlayerMode());
+  DOM.vsBotBtn?.addEventListener("click", () => vsBotMode());
+  
+  // Action buttons
+  DOM.playAgainBtn?.addEventListener("click", () => playAgain());
+  DOM.newGameBtn?.addEventListener("click", () => newGame());
+  DOM.startGameBtn?.addEventListener("click", () => startGame());
+  DOM.optionsBtn?.addEventListener("click", () => showOptionsMenu());
+  DOM.resetBtn?.addEventListener("click", () => resetGame());
+  
+  // Slider input
+  DOM.slider?.addEventListener("input", () => sliderInput());
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  DOM.init();
+  setupEventListeners();
+  initializeSlider();
+  initializeGame();
 });
 
 function switchPlayer() {
   gameState.currentPlayer =
     (gameState.currentPlayer + 1) % CONFIG.players.length;
   updateUI();
-  if (gameState.mode == 1 && gameState.currentPlayer == 1) {
+  if (gameState.mode === CONSTANTS.PLAYERS.BOT && gameState.currentPlayer === CONSTANTS.PLAYERS.BOT) {
     clickBotMove();
   }
 }
@@ -246,7 +338,7 @@ function updateUI() {
   const currentPlayer = getCurrentPlayer();
   const Player1UI = document.getElementById("player1-container");
   const Player2UI = document.getElementById("player2-container");
-  if (currentPlayer.index == 0) {
+  if (currentPlayer.index === CONSTANTS.PLAYERS.HUMAN) {
     Player2UI.classList.remove("Current");
     Player1UI.classList.add("Current");
   } else {
@@ -256,10 +348,10 @@ function updateUI() {
 }
 
 function updateScore() {
-  const player1score = document.getElementById("P1-score");
-  const player2score = document.getElementById("P2-score");
-  player1score.innerHTML = `${gameState.score[0]}`;
-  player2score.innerHTML = `${gameState.score[1]}`;
+  if (DOM.player1Score && DOM.player2Score) {
+    DOM.player1Score.textContent = gameState.score[0];
+    DOM.player2Score.textContent = gameState.score[1];
+  }
 }
 
 function getCompletedSquares(lineElement) {
@@ -280,7 +372,7 @@ function getCompletedSquares(lineElement) {
         completedSquares.push({ row: row, col: col });
       }
     }
-  } else if (lineType == "vertical") {
+  } else if (lineType === "vertical") {
     if (col > 0) {
       if (isSquareComplete(row, col - 1)) {
         completedSquares.push({ row: row, col: col - 1 });
@@ -318,51 +410,74 @@ function isSquareComplete(row, col) {
 }
 
 function markSquare(row, col, player) {
-  const grid = document.getElementById("grid");
+  const squareKey = `${row},${col}`;
+  
+  // Check if square is already marked by any player
+  const alreadyMarked = gameState.completedSquares[0].has(squareKey) || 
+                        gameState.completedSquares[1].has(squareKey);
+  
+  if (alreadyMarked) {
+    console.warn(`Square at ${row},${col} already marked!`);
+    return;
+  }
+  
   const square = document.createElement("div");
   square.dataset.row = String(row);
   square.dataset.col = String(col);
   square.dataset.player = String(player.index);
   square.classList.add("square");
   square.style.backgroundColor = player.color;
-  square.style.left = `${calculatePosition(col) + 12}px`;
-  square.style.top = `${calculatePosition(row) + 12}px`;
-  grid.appendChild(square);
-  gameState.completedSquares[player.index].add(`${row},${col}`);
+  square.style.left = `${calculatePosition(col) + CONSTANTS.POSITION_OFFSET}px`;
+  square.style.top = `${calculatePosition(row) + CONSTANTS.POSITION_OFFSET}px`;
+  DOM.grid.appendChild(square);
+  gameState.completedSquares[player.index].add(squareKey);
 }
 
 function getActive() {
   gameState.lines.forEach((line) => {
     line.classList.remove("valid");
   });
-  if (gameState.currentDot == null) {
+  if (gameState.style === CONSTANTS.STYLES.CONNECTED) {
+    if (gameState.currentDot === null) {
+      gameState.lines.forEach((line) => {
+        if (!gameState.selectedLines.has(line.dataset.id)) {
+          line.classList.add("valid");
+        }
+      });
+    } else {
+      const validLineIDs = new Set();
+      gameState.currentDot.forEach((dot) => {
+        const connectedLines = getConnectedLines(dot[0], dot[1]);
+        connectedLines.forEach((lineID) => {
+          if (!gameState.selectedLines.has(lineID)) {
+            validLineIDs.add(lineID);
+          }
+        });
+      });
+
+      if (validLineIDs.size === 0) {
+        gameState.currentDot = null;
+        // Check if any unselected lines exist before recursing
+        const hasUnselectedLines = gameState.lines.some(line => 
+          !gameState.selectedLines.has(line.dataset.id));
+        if (hasUnselectedLines) {
+          getActive();
+          return;
+        }
+      } else {
+        gameState.lines.forEach((line) => {
+          if (validLineIDs.has(line.dataset.id)) {
+            line.classList.add("valid");
+          }
+        });
+      }
+    }
+  } else {
     gameState.lines.forEach((line) => {
       if (!gameState.selectedLines.has(line.dataset.id)) {
         line.classList.add("valid");
       }
     });
-  } else {
-    const validLineIDs = new Set();
-    gameState.currentDot.forEach((dot) => {
-      const connectedLines = getConnectedLines(dot[0], dot[1]);
-      connectedLines.forEach((lineID) => {
-        if (!gameState.selectedLines.has(lineID)) {
-          validLineIDs.add(lineID);
-        }
-      });
-    });
-
-    if (validLineIDs.size == 0) {
-      gameState.currentDot = null;
-      getActive();
-      return;
-    } else {
-      gameState.lines.forEach((line) => {
-        if (validLineIDs.has(line.dataset.id)) {
-          line.classList.add("valid");
-        }
-      });
-    }
   }
 }
 
@@ -392,31 +507,45 @@ function getConnectedLines(row, col) {
 }
 
 function showOptionsMenu() {
-  const overlay = document.querySelector(".options-overlay");
-  overlay.classList.remove("hidden");
-  overlay.classList.add("show");
+  if (DOM.optionsOverlay) {
+    DOM.optionsOverlay.classList.remove("hidden");
+    DOM.optionsOverlay.classList.add("show");
+  }
 }
 
 function hideOptionsMenu() {
-  const overlay = document.querySelector(".options-overlay");
-  overlay.classList.add("hidden");
-  overlay.classList.remove("show");
+  if (DOM.optionsOverlay) {
+    DOM.optionsOverlay.classList.add("hidden");
+    DOM.optionsOverlay.classList.remove("show");
+  }
 }
 
 function initializeSlider() {
-  const slider = document.querySelector(".slider");
-  const sliderLabel = document.querySelector(".slider-label");
-  slider.max = String(
-    window.innerWidth / 50 > 16 ? 16 : window.innerWidth / 50
-  );
-  slider.value = String(slider.max < 10 ? slider.max / 2 : 10);
+  if (!DOM.slider || !DOM.sliderLabel) {
+    console.error("Slider elements not found!");
+    return;
+  }
+  
+  const slider = DOM.slider;
+  const sliderLabel = DOM.sliderLabel;
+  
+  // Calculate max grid size based on screen width, ensure it's an integer
+  const maxGridSize = Math.min(CONSTANTS.GRID_MAX_SIZE, Math.floor(window.innerWidth / CONSTANTS.GRID_POSITION_MULTIPLIER));
+  slider.max = String(Math.max(CONSTANTS.GRID_MIN_SIZE, maxGridSize));
+  
+  // Set default value, ensure it's an integer
+  const maxValue = parseInt(slider.max);
+  slider.value = String(maxValue < CONSTANTS.DEFAULT_GRID_SIZE ? Math.max(CONSTANTS.GRID_MIN_SIZE, Math.floor(maxValue / 2)) : CONSTANTS.DEFAULT_GRID_SIZE);
+  
   CONFIG.gridSize = parseInt(slider.value);
   sliderLabel.textContent = `Grid Size:${slider.value}X${slider.value}`;
 }
 
 function sliderInput() {
-  const slider = document.querySelector(".slider");
-  const sliderLabel = document.querySelector(".slider-label");
+  if (!DOM.slider || !DOM.sliderLabel) return;
+  
+  const slider = DOM.slider;
+  const sliderLabel = DOM.sliderLabel;
   const value = parseInt(slider.value);
   sliderLabel.textContent = `Grid Size:${value}X${value}`;
   CONFIG.gridSize = value;
@@ -429,15 +558,19 @@ function startGame() {
 
 function winCheck() {
   const totalSquares = (CONFIG.gridSize - 1) ** 2;
+  const totalCompletedSquares = gameState.score[0] + gameState.score[1];
   const winningScore = Math.floor(totalSquares / 2) + 1;
 
+  // Check if a player has more than half the squares (early win condition)
+  // or if all squares are completed (handle ties)
   if (
     gameState.score[0] >= winningScore ||
-    gameState.score[1] >= winningScore
+    gameState.score[1] >= winningScore ||
+    totalCompletedSquares === totalSquares
   ) {
     setTimeout(() => {
       showWinner();
-    }, 500);
+    }, CONSTANTS.WIN_CHECK_DELAY);
   }
 }
 
@@ -456,7 +589,7 @@ function showWinner() {
     winnerPlayer.textContent = "Player 1 Wins!";
     winnerPlayer.className = "winner-player player1";
   } else if (gameState.score[1] > gameState.score[0]) {
-    if (gameState.mode == 1) {
+    if (gameState.mode === CONSTANTS.PLAYERS.BOT) {
       winnerPlayer.textContent = "Bot Wins!";
     } else {
       winnerPlayer.textContent = "Player 2 Wins!";
@@ -491,11 +624,13 @@ function newGame() {
 function vsPlayerMode() {
   const playerButton = document.querySelector(".Mode1");
   const botButton = document.querySelector(".Mode2");
+  const p2Name = document.querySelector(".p2-win-name");
   const p2Text = document.getElementById("p2");
+  p2Name.textContent = "Player 2";
   playerButton.classList.add("active");
   botButton.classList.remove("active");
   p2Text.textContent = "Player 2";
-  gameState.mode = 0;
+  gameState.mode = CONSTANTS.PLAYERS.HUMAN;
 }
 
 function vsBotMode() {
@@ -507,14 +642,39 @@ function vsBotMode() {
   botButton.classList.add("active");
   p2Text.textContent = "Bot";
   p2Name.textContent = "Bot";
-  gameState.mode = 1;
+  gameState.mode = CONSTANTS.PLAYERS.BOT;
 }
 
 function clickBotMove() {
   getActive();
   const move = getBotMove();
   console.log(move);
-  setTimeout(() => {
-    document.querySelector(`[data-id="${move}"]`).click();
-  }, 100);
+  if (move) {
+    setTimeout(() => {
+      const element = document.querySelector(`[data-id="${move}"]`);
+      if (element) {
+        element.click();
+      }
+    }, CONSTANTS.BOT_MOVE_DELAY);
+  }
+}
+
+function connectedMode() {
+  if (!DOM.connectedButton || !DOM.freeformButton) return;
+  
+  const connectedButton = DOM.connectedButton;
+  const freeformButton = DOM.freeformButton;
+  connectedButton.classList.add("active");
+  freeformButton.classList.remove("active");
+  gameState.style = CONSTANTS.STYLES.CONNECTED;
+}
+
+function freeformMode() {
+  if (!DOM.connectedButton || !DOM.freeformButton) return;
+  
+  const connectedButton = DOM.connectedButton;
+  const freeformButton = DOM.freeformButton;
+  freeformButton.classList.add("active");
+  connectedButton.classList.remove("active");
+  gameState.style = CONSTANTS.STYLES.FREEFORM;
 }

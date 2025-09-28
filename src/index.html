@@ -24,10 +24,10 @@
           </div>
         </div>
         <div class="winner-buttons">
-          <button class="play-again-btn" onclick="playAgain()">
+          <button class="play-again-btn" id="play-again-btn">
             Play Again
           </button>
-          <button class="new-game-btn" onclick="newGame()">New Game</button>
+          <button class="new-game-btn" id="new-game-btn">New Game</button>
         </div>
       </div>
     </div>
@@ -37,10 +37,19 @@
         <div class="gamemode-container">
           <div>Game Mode:</div>
           <div class="buttons">
-            <button class="Mode1 active" onclick="vsPlayerMode()">
+            <button class="Mode1 active btn" id="vs-player-btn">
               Vs Player
             </button>
-            <button class="Mode2" onclick="vsBotMode()">Vs Bot</button>
+            <button class="Mode2 btn" id="vs-bot-btn">
+              Vs Bot
+            </button>
+          </div>
+        </div>
+        <div class="gamestyle-container">
+          <div>Game Style:</div>
+          <div class="buttons">
+            <button class="Connected active btn" id="connected-btn">Connected</button
+            ><button class="Freeform btn" id="freeform-btn">Freeform</button>
           </div>
         </div>
         <div class="grid-option-container">
@@ -51,13 +60,13 @@
             min="3"
             max="16"
             value="10"
-            oninput="sliderInput()"
+            id="grid-size-slider"
           />
         </div>
-        <button class="start-button" onclick="startGame()">Start Game</button>
+        <button class="start-button" id="start-game-btn">Start Game</button>
       </div>
     </div>
-    <button class="option-btn" onclick="showOptionsMenu()">Options</button>
+    <button class="option-btn" id="options-btn">Options</button>
     <div class="title">Dots and Lines</div>
     <div class="score-container">
       <div class="score" id="player1-container">
@@ -73,7 +82,7 @@
       <div class="game-grid" id="grid"></div>
     </div>
     <div class="reset-container">
-      <button onclick="resetGame()" class="reset-button">Restart</button>
+      <button id="reset-btn" class="reset-button">Restart</button>
     </div>
   </body>
   <script type="module" src="./main.js"></script>
