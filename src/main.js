@@ -1,4 +1,5 @@
 import { getBotMove } from "./bot.js";
+import { animateGridElements, clearAnimations } from "./animations.js";
 
 // Constants
 const CONSTANTS = {
@@ -12,6 +13,7 @@ const CONSTANTS = {
   POSITION_OFFSET: 12,
   LINE_POSITION_OFFSET: 2,
   DOT_POSITION_OFFSET: 1,
+
   PLAYERS: {
     HUMAN: 0,
     BOT: 1,
@@ -39,7 +41,6 @@ const gameState = {
   score: [0, 0],
   playerLines: [new Set(), new Set()],
   currentDot: null,
-  validLineIDs: new Set(),
   mode: 0,
   style: 0,
 };
@@ -62,7 +63,7 @@ function createDot(row, col) {
 
 function createHorizontalLine(row, col) {
   const line = document.createElement("div");
-  line.className = "line";
+  line.className = "line horizontal";
   line.dataset.type = "horizontal";
   line.dataset.row = row;
   line.dataset.col = col;
@@ -83,7 +84,7 @@ function createHorizontalLine(row, col) {
 
 function createVerticalLine(row, col) {
   const line = document.createElement("div");
-  line.className = "line";
+  line.className = "line vertical";
   line.dataset.type = "vertical";
   line.dataset.row = row;
   line.dataset.col = col;
@@ -199,41 +200,53 @@ function initializeGame() {
   const gridPixelSize =
     CONSTANTS.GRID_POSITION_MULTIPLIER * (CONFIG.gridSize - 1) + CONFIG.dotSize;
   grid.style.width = grid.style.height = `${gridPixelSize}px`;
+  // Create all elements first without animation
+  const dots = [];
+  const lines = [];
 
   for (let row = 0; row < CONFIG.gridSize; row++) {
     for (let col = 0; col < CONFIG.gridSize; col++) {
       const dot = createDot(row, col);
       grid.appendChild(dot);
+      dots.push({ element: dot, row, col });
 
       if (col < CONFIG.gridSize - 1) {
         const hLine = createHorizontalLine(row, col);
         grid.appendChild(hLine);
         gameState.lines.push(hLine);
+        lines.push({ element: hLine, type: "horizontal", row, col });
       }
 
       if (row < CONFIG.gridSize - 1) {
         const vLine = createVerticalLine(row, col);
         grid.appendChild(vLine);
         gameState.lines.push(vLine);
+        lines.push({ element: vLine, type: "vertical", row, col });
       }
     }
   }
-  getActive();
-  updateUI();
-  updateScore();
+
+  // Animate dots with staggered timing
+  animateGridElements(dots, lines, CONFIG);
+
+  // Initialize game state after animation starts
+  setTimeout(() => {
+    getActive();
+    updateUI();
+    updateScore();
+  }, 200);
 }
 
 function resetGame() {
   gameState.selectedLines.clear();
   gameState.playerLines = [new Set(), new Set()];
-  gameState.lines.forEach((line) => {
-    line.classList.remove("selected-P1", "selected-P2", "valid");
-  });
+  clearAnimations(gameState.lines);
   gameState.completedSquares = [new Set(), new Set()];
   const squares = document.querySelectorAll(".square");
   squares.forEach((square) => {
     square.remove();
   });
+
   gameState.score = [0, 0];
   gameState.currentPlayer = 0;
   gameState.currentDot = null;
@@ -246,6 +259,7 @@ function resetGame() {
 // DOM element cache
 const DOM = {
   grid: null,
+  gameBoard: null,
   connectedButton: null,
   freeformButton: null,
   optionsOverlay: null,
@@ -264,6 +278,7 @@ const DOM = {
 
   init() {
     this.grid = document.getElementById("grid");
+    this.gameBoard = document.querySelector(".game-board");
     this.connectedButton = document.getElementById("connected-btn");
     this.freeformButton = document.getElementById("freeform-btn");
     this.optionsOverlay = document.querySelector(".options-overlay");
@@ -318,7 +333,11 @@ document.addEventListener("DOMContentLoaded", () => {
   DOM.init();
   setupEventListeners();
   initializeSlider();
-  initializeGame();
+
+  // Add a small delay for initial load animation
+  setTimeout(() => {
+    initializeGame();
+  }, 100);
 });
 
 function switchPlayer() {

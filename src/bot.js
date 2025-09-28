@@ -1,7 +1,3 @@
-/**
- * Gets a random valid move for the bot player
- * @returns {string|null} Line ID of the selected move, or null if no valid moves
- */
 export function getBotMove() {
   const validLines = document.querySelectorAll(".valid");
 
@@ -26,12 +22,6 @@ export function getBotMove() {
   return validLineIDs[randomIndex];
 }
 
-/**
- * Generate a random integer between min and max (inclusive)
- * @param {number} min - Minimum value
- * @param {number} max - Maximum value
- * @returns {number} Random integer
- */
 function getRandomInt(min, max) {
   if (min > max) {
     throw new Error("Min value cannot be greater than max value");

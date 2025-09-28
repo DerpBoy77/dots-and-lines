@@ -34,6 +34,43 @@ body {
   position: relative;
 }
 
+@keyframes dotAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(180deg);
+  }
+  60% {
+    opacity: 0.8;
+    transform: scale(1.1) rotate(45deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes lineSlide {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes lineSlideVertical {
+  0% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
 /* Dot styles */
 .dot {
   width: 16px;
@@ -45,6 +82,11 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   z-index: 2; /* Ensure dots appear above lines */
+  opacity: 0;
+}
+
+.dot.animate {
+  animation: dotAppear 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 /* Line styles */
@@ -52,6 +94,18 @@ body {
   position: absolute;
   transition: all 0.2s ease;
   z-index: 1; /* Lines appear below dots */
+  opacity: 0;
+}
+
+.line.horizontal.animate {
+  animation: lineSlide 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-origin: left center;
+}
+
+.line.vertical.animate {
+  animation: lineSlideVertical 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    forwards;
+  transform-origin: center top;
 }
 
 .valid {
